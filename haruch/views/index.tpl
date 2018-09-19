@@ -72,9 +72,11 @@
     }
   </style>
 </head>
-
 <body>
   <header>
+    <div class="alert alert-primary" role="alert">
+      bootstrap 入ったよ！
+    </div>
     <h1 class="logo">haruhikonyan 参上</h1>
     <div class="description">
       go 及び beego を試してみてるマン
