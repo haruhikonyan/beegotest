@@ -1,0 +1,1 @@
+C:\Users\user\go\src\beegotest\haruch/views/post/show.tpl
