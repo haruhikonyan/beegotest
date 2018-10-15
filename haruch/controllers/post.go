@@ -17,11 +17,39 @@ type PostController struct {
 
 // URLMapping ...
 func (c *PostController) URLMapping() {
+	c.Mapping("Index", c.Index)
 	c.Mapping("Post", c.Post)
 	c.Mapping("GetOne", c.GetOne)
 	c.Mapping("GetAll", c.GetAll)
 	c.Mapping("Put", c.Put)
 	c.Mapping("Delete", c.Delete)
+}
+
+// Index ...
+// @Title Index
+// @Description show BBS
+// @Success 200
+// @Failure 403 body is empty
+// @router /post/index [get]
+func (c *PostController) Index() {
+	c.Layout = "layout/layout.html"
+	c.TplName = "post/index.tpl"
+
+	var fields []string
+	var sortby []string
+	var order []string
+	var query = make(map[string]string)
+	var limit int64 = 10
+	var offset int64
+
+	l, err := models.GetAllPost(query, fields, sortby, order, offset, limit)
+
+	if err != nil {
+		c.Data["json"] = err.Error()
+		c.ServeJSON()
+	} else {
+		c.Data["posts"] = l
+	}
 }
 
 // Post ...
@@ -30,17 +58,26 @@ func (c *PostController) URLMapping() {
 // @Param	body		body 	models.Post	true		"body for Post content"
 // @Success 201 {int} models.Post
 // @Failure 403 body is empty
-// @router / [post]
+// @router /post [post]
 func (c *PostController) Post() {
-	var v models.Post
-	json.Unmarshal(c.Ctx.Input.RequestBody, &v)
-	if _, err := models.AddPost(&v); err == nil {
+	var post models.Post
+	// データ取得して post オブジェクト作成
+	post = models.Post{
+		Title: c.GetString("title"),
+		Body:  c.GetString("body"),
+	}
+	// データ保存
+	if _, err := models.AddPost(&post); err == nil {
 		c.Ctx.Output.SetStatus(201)
-		c.Data["json"] = v
+		// 一応 json 格納しておく
+		c.Data["json"] = post
+		// 成功したら掲示板トップにリダイレクト
+		c.Redirect("/post/index", 302)
 	} else {
 		c.Data["json"] = err.Error()
+		// 失敗時は一旦エラーをそのまま描画することにする
+		c.ServeJSON()
 	}
-	c.ServeJSON()
 }
 
 // GetOne ...
@@ -73,7 +110,7 @@ func (c *PostController) GetOne() {
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
 // @Success 200 {object} models.Post
 // @Failure 403
-// @router / [get]
+// @router /getall [get]
 func (c *PostController) GetAll() {
 	var fields []string
 	var sortby []string
